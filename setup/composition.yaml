@@ -1,0 +1,58 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xnopresources.nop.example.org
+spec:
+  compositeTypeRef:
+    apiVersion: nop.example.org/v1alpha1
+    kind: XNopResource
+  mode: Pipeline
+  pipeline:
+  - step: patch-and-transform
+    functionRef:
+      name: function-patch-and-transform
+    input:
+      apiVersion: pt.fn.crossplane.io/v1beta1
+      kind: Resources
+      resources:
+      - name: nop-resource-1
+        base:
+         apiVersion: nop.crossplane.io/v1alpha1
+         kind: NopResource
+         spec:
+          forProvider:
+            conditionAfter:
+            - conditionType: Ready
+              conditionStatus: "False"
+              time: 30s
+            - conditionType: Ready
+              conditionStatus: "True"
+              time: 40s
+        patches:
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.conditions[1].type
+          toFieldPath: status.coolerField
+      - name: nop-resource-2
+        base:
+         apiVersion: nop.crossplane.io/v1alpha1
+         kind: NopResource
+         spec:
+          forProvider:
+            conditionAfter:
+            - conditionType: Ready
+              conditionStatus: "False"
+              time: 0s
+            - conditionType: Ready
+              conditionStatus: "True"
+              time: 1s
+        patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.coolerField
+          toFieldPath: metadata.annotations[cool-field]
+          transforms:
+          - type: string
+            string:
+             type: Convert
+             convert: ToUpper
+          policy:
+            fromFieldPath: Required
