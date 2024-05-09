@@ -1,0 +1,6 @@
+apiVersion: nop.example.org/v1alpha1
+kind: NopResource
+metadata:
+  name: repro
+spec: 
+  coolField: foo
